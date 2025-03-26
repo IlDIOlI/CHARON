@@ -16,6 +16,7 @@ int init(void){
 	clear();
 	for (int i = 0; i < y; ++i)
 	{
+		//ugly nested for loop for printing out zeroes, first loop acts for rows, second for columns in persons terminal, it will probably break however if the window is resized during process
 		for (int i = 0; i < x; ++i)
 			{
 			//can be more variable
@@ -28,18 +29,18 @@ int init(void){
 	sleep(1);
 	return 0;
 }
-
+//beautiful function where everything dies ig, final freeing memory and halting is done here...
 int die (void){
+	free(input);
 	endwin();
+	return 0;
 }
-//recieves user command, halts when q is pressed
-char user_in(void){
-	char *input = (char *)malloc(sizeof(char));
-	*input = (char)getch();
+//recieves user command, creates/rewrites variable which is stored in heap, returns the vraiable or pointer to it, idk, halts when q is pressed
+char user_in(int *input){
 	if (input == NULL) {
-        printf("Catasthropic error happened!\n");
-        exit(1);
+        char *input = (char *)malloc(sizeof(char));
     }
+    *input = (char)getch();
 	if(*input == 0x71){
 		exit(0);
 	} else {
@@ -65,7 +66,7 @@ int menu_init (void){
 	clear();
 	cbreak();    
     noecho();
-    //trying to implement arrow key support
+    //trying to implement arrow key support and everything else...
     keypad(stdscr, TRUE);
 	int x,y;
 	getmaxyx(stdscr,y,x);
@@ -75,6 +76,7 @@ int menu_init (void){
 		printw("C.H.A.R.O.N.");
 	}
 	else {
+	//adjusting to comfy values which can be divided by 2
 		if (x%2 == 0){
 			y--;
 		}
@@ -87,23 +89,27 @@ int menu_init (void){
 	move((y/2)+1,(x/2)-15);
 	epic_printw("Press any key to continue...", 40000);
 }
-//main menu function
+//main menu function, options with links? will be here
 void menu_main(){
 //todo
 	clear();
 	mvprintw(4,8,"Welcome to C.H.A.R.O.N.\n");
 	user_in();
 }
-//function for adding options to the menu
+//function for adding options to the menu in menu_main function
 /*option_menu(const char *option){
 //todo
 }
+
 */
-void user_in_handle(int input){
+//function for handling user input in the menu and elsewhere (selecting, moving with arrow keys etc.)
+/*void user_in_handle(int input){
 	//handle
 	//need to handle arrow key input
-}
-//NEED: function for displaying active option, function for handling user input
+}*/
+
+//NEED: function for displaying active option
+
 //for testing, will be moved to main.c
 int main(void)
 {
