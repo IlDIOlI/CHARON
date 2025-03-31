@@ -30,26 +30,20 @@ int init(void){
 	return 0;
 }
 //beautiful function where everything dies ig, final freeing memory and halting is done here...
-int die (void){
-	free(input);
+void die (void){
 	endwin();
-	return 0;
+	exit(0);
 }
-//recieves user command, creates/rewrites variable which is stored in heap, returns the vraiable or pointer to it, idk, halts when q is pressed
-char user_in(int *input){
-	if (input == NULL) {
-        char *input = (char *)malloc(sizeof(char));
+//recieves user command, halts when q is pressed
+char user_in(void){
+	flushinp();
+	int input = getch();
+    
+    if (input == 'q' || input == 'Q') {
+        die();
     }
-    *input = (char)getch();
-	if(*input == 0x71){
-		exit(0);
-	} else {
-		return(*input);
-	}
-	/*refresh();
-	mvprintw(0,0,"point: %p\n input:%c\n",*input,input);
-	refresh();
-	getch();*/
+    
+    return input; 
 }
 //slow printw with char as a input and int as delay...
 void epic_printw(const char *input, int e_delay){
