@@ -1,6 +1,21 @@
 #include <ncurses.h>
 #include <unistd.h>
 #include <stdlib.h>
+#include <stdbool.h>
+
+//STRUCTS!
+struct Menu_item {
+	 char * label;
+	 bool selected;
+	 struct Menu_item * next;
+};
+
+struct Menu {
+	struct Menu_item * head;
+	int cursor_pos;
+	int x,y;
+};
+
 //intro animation
 int init(void){
 	int x,y,m_delay;
@@ -34,6 +49,7 @@ void die (void){
 	endwin();
 	exit(0);
 }
+
 //recieves user command, halts when q is pressed
 char user_in(void){
 	flushinp();
@@ -43,8 +59,9 @@ char user_in(void){
         die();
     }
     
-    return input; 
+    return (input); 
 }
+
 //slow printw with char as a input and int as delay...
 void epic_printw(const char *input, int e_delay){
 	for (int i = 0; input[i]!='\0'; ++i)
@@ -83,19 +100,19 @@ int menu_init (void){
 	move((y/2)+1,(x/2)-15);
 	epic_printw("Press any key to continue...", 40000);
 }
-//main menu function, options with links? will be here
+//function for adding options to the menu in menu_main function
+void option_menu(char * option){
+	printw("%s\n",option);
+}
+
+//main menu function, options with links? will be here 
 void menu_main(){
 //todo
 	clear();
 	mvprintw(4,8,"Welcome to C.H.A.R.O.N.\n");
+	option_menu("Option1");
 	user_in();
 }
-//function for adding options to the menu in menu_main function
-/*option_menu(const char *option){
-//todo
-}
-
-*/
 //function for handling user input in the menu and elsewhere (selecting, moving with arrow keys etc.)
 /*void user_in_handle(int input){
 	//handle
