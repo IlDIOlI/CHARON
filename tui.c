@@ -4,14 +4,14 @@
 #include <stdbool.h>
 
 //STRUCTS!
-struct Menu_item {
+struct Menu_init {
 	 char * label;
 	 bool selected;
-	 struct Menu_item * next;
+	 struct Menu_init * next;
 };
 
 struct Menu {
-	struct Menu_item * head;
+	struct Menu_init * head;
 	int cursor_pos;
 	int x,y;
 };
@@ -45,9 +45,24 @@ int init(void){
 	return 0;
 }
 //beautiful function where everything dies ig, final freeing memory and halting is done here...
-void die (void){
+void die (int in){
 	endwin();
-	exit(0);
+	switch(in) {
+        case 0:
+            printf("Normal exit\n");
+            break;
+        case 1:
+            printf("Memory allocation failed\n");
+            break;
+        case 2:
+            printf("String duplication failed\n");
+            break;
+        default:
+            printf("Unknown error\n");
+    }
+
+    endwin();  // Restore terminal
+    exit(in == 0 ? EXIT_SUCCESS : EXIT_FAILURE);
 }
 
 //recieves user command, halts when q is pressed
@@ -104,7 +119,38 @@ int menu_init (void){
 void option_menu(char * option){
 	printw("%s\n",option);
 }
-
+//creating structs for this menu
+//defacto for creating each options for the menu...
+struct Menu_init * create_struct_menu_init (char * label){
+	struct Menu_init *ptr;
+	ptr = malloc(sizeof(struct Menu_init));
+	if (ptr == NULL){
+		die(1);
+	}
+	ptr->label = strdup(label);
+	if (!ptr->label) {
+        die(2);
+    }
+	ptr->selected = false;
+	ptr->next = NULL;
+	return (ptr);
+	//REMEMBER TO FREE THIS SHI
+}
+//creating structs for menu handling
+//defacto grid and simple struct for handling
+struct Menu * create_struct_menu (int x,int y){
+	struct Menu *ptr;
+	ptr = malloc(sizeof(struct Menu));
+	if (ptr == NULL){
+		die(1);
+	}
+	ptr->head = NULL;
+	ptr->cursor_pos = 0;
+	ptr->x = x;
+	ptr->y = y;
+	return (ptr);
+	//REMEMBER TO FREE THIS SHI
+}
 //main menu function, options with links? will be here 
 void menu_main(){
 //todo
