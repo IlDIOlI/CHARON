@@ -2,6 +2,7 @@
 #include <unistd.h>
 #include <stdlib.h>
 #include <stdbool.h>
+#include <string.h>
 
 //STRUCTS!
 struct Menu_init {
@@ -12,6 +13,7 @@ struct Menu_init {
 
 struct Menu {
 	struct Menu_init * head;
+	struct Menu_init * tail;
 	int cursor_pos;
 	int x,y;
 };
@@ -21,7 +23,7 @@ int init(void){
 	int x,y,m_delay;
 	m_delay = 10000;
 	initscr();
-	getmaxyx(stdscr,y,x);	
+	getmaxyx(stdscr,y,x);
 	refresh();
 	//debug values for determining terminal properties
 	//printw("Y value: %i\n",y);
@@ -49,7 +51,7 @@ void die (int in){
 	endwin();
 	switch(in) {
         case 0:
-            printf("Normal exit\n");
+						printf("Successful exit!\n");
             break;
         case 1:
             printf("Memory allocation failed\n");
@@ -60,8 +62,6 @@ void die (int in){
         default:
             printf("Unknown error\n");
     }
-
-    endwin();  // Restore terminal
     exit(in == 0 ? EXIT_SUCCESS : EXIT_FAILURE);
 }
 
@@ -69,12 +69,12 @@ void die (int in){
 char user_in(void){
 	flushinp();
 	int input = getch();
-    
+
     if (input == 'q' || input == 'Q') {
-        die();
+        die(0);
     }
-    
-    return (input); 
+
+    return (input);
 }
 
 //slow printw with char as a input and int as delay...
@@ -90,7 +90,7 @@ void epic_printw(const char *input, int e_delay){
 //fancy welcoming screen
 int menu_init (void){
 	clear();
-	cbreak();    
+	cbreak();
     noecho();
     //trying to implement arrow key support and everything else...
     keypad(stdscr, TRUE);
@@ -115,10 +115,6 @@ int menu_init (void){
 	move((y/2)+1,(x/2)-15);
 	epic_printw("Press any key to continue...", 40000);
 }
-//function for adding options to the menu in menu_main function
-void option_menu(char * option){
-	printw("%s\n",option);
-}
 //creating structs for this menu
 //defacto for creating each options for the menu...
 struct Menu_init * create_struct_menu_init (char * label){
@@ -136,6 +132,7 @@ struct Menu_init * create_struct_menu_init (char * label){
 	return (ptr);
 	//REMEMBER TO FREE THIS SHI
 }
+
 //creating structs for menu handling
 //defacto grid and simple struct for handling
 struct Menu * create_struct_menu (int x,int y){
@@ -145,18 +142,79 @@ struct Menu * create_struct_menu (int x,int y){
 		die(1);
 	}
 	ptr->head = NULL;
+	ptr->tail = NULL;
 	ptr->cursor_pos = 0;
 	ptr->x = x;
 	ptr->y = y;
 	return (ptr);
 	//REMEMBER TO FREE THIS SHI
 }
-//main menu function, options with links? will be here 
+void item_link(struct Menu * menu_ptr,struct Menu_init * menu_in_ptr){
+		//link the head and next to each other
+		menu_in_ptr->next = NULL;
+		if(menu_ptr->head == NULL){
+			//linking the first item and menu with head and tail...
+			menu_ptr->head = menu_in_ptr;
+			menu_ptr->tail = menu_in_ptr;
+		} else {
+			//linking every other item, but not sure about the last one...
+			//UPDATE! It doesn't matter which is it, because next is set only for previous item, not the last one.
+			menu_ptr->tail->next = menu_in_ptr;
+			menu_ptr->tail = menu_in_ptr;
+		}
+}
+//renders menu...
+void menu_render(struct Menu * menu){
+	printw("\n");
+	//empty menu returns nothing and ends function
+	if(menu->head == NULL){
+		return;
+	}
+	//temp var for checking if it is in scope
+	struct Menu_init *temp = menu->head;
+	while(temp != NULL){
+		//highlighting and printing the selected item
+		if(temp->selected == true){
+			attron(A_STANDOUT);
+		}
+		//printing the item
+		if(temp->next==NULL){
+			printw("%s",temp->label);
+		} else {
+			printw("%s\n",temp->label);
+		}
+		//elevate onto the next item
+		if(temp->selected == true){
+			attroff(A_STANDOUT);
+		}
+		temp = temp->next;
+	}
+	refresh();
+}
+void menu_setup(void){
+	//setup the menu here, so I can call the function in the main just with structs defined.
+	int x,y;
+	getmaxyx(stdscr,y,x);
+	//moving so the first hardcoded text is displayed correctly
+	move(5,10);
+	x=x-10;
+	y=y-5;
+	struct Menu *main_menu = create_struct_menu(x,y);
+	//the menu is defined and is waiting for some adding options.
+	//Options are added here:
+	item_link(main_menu,create_struct_menu_init("Label_the_first\n"));
+	item_link(main_menu,create_struct_menu_init("Template1\n"));
+	item_link(main_menu,create_struct_menu_init("Template2\n"));
+	item_link(main_menu,create_struct_menu_init("Template3\n"));
+	menu_render(main_menu);
+}
+//main menu function, options with links? will be here
 void menu_main(){
 //todo
 	clear();
 	mvprintw(4,8,"Welcome to C.H.A.R.O.N.\n");
-	option_menu("Option1");
+	refresh();
+	menu_setup();
 	user_in();
 }
 //function for handling user input in the menu and elsewhere (selecting, moving with arrow keys etc.)
@@ -174,6 +232,6 @@ int main(void)
 	menu_init();
 	user_in();
 	menu_main();
-	die();
+	die(0);
 	return 0;
 }
