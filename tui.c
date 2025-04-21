@@ -66,7 +66,7 @@ void die (int in){
 }
 
 //recieves user command, halts when q is pressed
-char user_in(void){
+int user_in(void){
 	flushinp();
 	int input = getch();
 
