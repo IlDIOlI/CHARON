@@ -7,18 +7,19 @@
 //STRUCTS!
 struct Menu_init {
 	 char * label;
-	 bool selected;
 	 struct Menu_init * next;
 };
 
 struct Menu {
 	struct Menu_init * head;
 	struct Menu_init * tail;
-	int cursor_pos;
-	int x,y;
+	short cursor_pos;
+	short x,y;
 };
 
 //intro animation
+/*
+unecessary for testing...
 int init(void){
 	int x,y,m_delay;
 	m_delay = 10000;
@@ -45,11 +46,11 @@ int init(void){
 	}
 	sleep(1);
 	return 0;
-}
+}*/
 //beautiful function where everything dies ig, final freeing memory and halting is done here...
 void die (int in){
 	endwin();
-    if (in == 0) {
+	if (in == 0) {
     	printf("Exit succesfully...\n");
     	exit(EXIT_SUCCESS);
     } else {
@@ -71,6 +72,8 @@ int user_in(void){
 }
 
 //slow printw with char as a input and int as delay...
+/*
+unecessary for testing..
 void epic_printw(const char *input, int e_delay){
 	for (int i = 0; input[i]!='\0'; ++i)
 	{
@@ -108,6 +111,7 @@ int menu_init (void){
 	move((y/2)+1,(x/2)-15);
 	epic_printw("Press any key to continue...", 40000);
 }
+*/
 //creating structs for this menu
 //defacto for creating each options for the menu...
 struct Menu_init * create_struct_menu_init (char * label){
@@ -120,7 +124,6 @@ struct Menu_init * create_struct_menu_init (char * label){
 	if (!ptr->label) {
         die(2);
     }
-	ptr->selected = false;
 	ptr->next = NULL;
 	return (ptr);
 	//REMEMBER TO FREE THIS SHI
@@ -165,9 +168,10 @@ void menu_render(struct Menu * menu){
 	}
 	//temp var for checking if it is in scope
 	struct Menu_init *temp = menu->head;
+	int selected = 0;
 	while(temp != NULL){
 		//highlighting and printing the selected item
-		if(temp->selected == true){
+		if(selected == menu->cursor_pos){
 			attron(A_STANDOUT);
 		}
 		//printing the item
@@ -177,14 +181,15 @@ void menu_render(struct Menu * menu){
 			printw("%s\n",temp->label);
 		}
 		//elevate onto the next item
-		if(temp->selected == true){
+		if(selected == menu->cursor_pos){
 			attroff(A_STANDOUT);
 		}
 		temp = temp->next;
+		selected++;
 	}
 	refresh();
 }
-void menu_setup(void){
+struct Menu * menu_setup(void){
 	//setup the menu here, so I can call the function in the main just with structs defined.
 	int x,y;
 	getmaxyx(stdscr,y,x);
@@ -200,6 +205,82 @@ void menu_setup(void){
 	item_link(main_menu,create_struct_menu_init("Template2\n"));
 	item_link(main_menu,create_struct_menu_init("Template3\n"));
 	menu_render(main_menu);
+	return(main_menu);
+}
+//function for handling user input in the menu and elsewhere (selecting, moving with arrow keys etc.)
+int user_in_handle(struct Menu * menu){
+	keypad(stdscr, TRUE);
+	cbreak();
+    noecho();
+	//need to handle arrow key input and return key
+	int input;
+	struct Menu_init *init = menu->head;
+
+	int menu_size = 0;
+	while (init){
+		menu_size++;
+		init=init->next;
+	}
+	while(true){
+		curs_set(0);
+		int input = user_in();
+		if (input == KEY_DOWN){
+			if(menu->cursor_pos != menu_size-1){
+				menu->cursor_pos++;
+			}
+		} else if(input == KEY_UP){
+			if(menu->cursor_pos > 0){
+				menu->cursor_pos--;
+			}
+		} else if(input == KEY_ENTER){
+			//execute...
+			//OR open item for more options...
+			return(0);
+		}
+		move(5,10);
+		menu_render(menu);
+	}
+	return(1);
+	/*while (true){
+		init = menu->head;
+		for (int i = 0; menu->cursor_pos > i-1; ++i) {
+			if(init->next!=NULL){
+				init->selected = false;
+				init = init->next;
+			} else {
+				break;
+			}
+		}
+		input = user_in();
+		if (input == KEY_DOWN) {
+			if(init != menu->tail){
+				menu->cursor_pos++;	
+			}
+			
+			if(init->next->next == NULL){
+				init->next->selected = true;
+			} else {
+				init->next->next->selected=true;
+			}
+		} else if (input == KEY_UP) {
+			if(menu->cursor_pos!=0){
+				menu->cursor_pos--;
+			}
+
+			init->selected = true;
+		} else if (input == KEY_ENTER) {
+			//will realize later...
+			return(0);
+		}
+		menu_render(menu);
+		refresh();
+	}
+	die(1);
+	return(1);
+	like, bad implementation...
+	*/
+
+
 }
 //main menu function, options with links? will be here
 void menu_main(){
@@ -207,23 +288,19 @@ void menu_main(){
 	clear();
 	mvprintw(4,8,"Welcome to C.H.A.R.O.N.\n");
 	refresh();
-	menu_setup();
-	user_in();
-}
-//function for handling user input in the menu and elsewhere (selecting, moving with arrow keys etc.)
-/*void user_in_handle(int input){
-	//handle
-	//need to handle arrow key input
-}*/
+	user_in_handle(menu_setup());
 
+}
 //NEED: function for displaying active option
 
 //for testing, will be moved to main.c
 int main(void)
 {
-	init();
-	menu_init();
-	user_in();
+	//moved here for now...
+	initscr();
+	//init();
+	//menu_init();
+	//user_in();
 	menu_main();
 	die(0);
 	return 0;
