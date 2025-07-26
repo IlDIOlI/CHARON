@@ -7,6 +7,8 @@
 //STRUCTS!
 struct Menu_init {
 	 char * label;
+	 struct Menu * submenu;
+	 bool executable;
 	 struct Menu_init * next;
 };
 
@@ -114,14 +116,15 @@ int menu_init (void){
 */
 //creating structs for this menu
 //defacto for creating each options for the menu...
-struct Menu_init * create_struct_menu_init (char * label){
+struct Menu_init * create_struct_menu_init (char * label, bool * executable){
 	struct Menu_init *ptr;
 	ptr = malloc(sizeof(struct Menu_init));
 	if (ptr == NULL){
 		die(1);
 	}
 	ptr->label = strdup(label);
-	if (!ptr->label) {
+	ptr->executable = executable;
+	if (!ptr->label || !ptr->executable) {
         die(2);
     }
 	ptr->next = NULL;
@@ -144,6 +147,9 @@ struct Menu * create_struct_menu (int x,int y){
 	ptr->y = y;
 	return (ptr);
 	//REMEMBER TO FREE THIS SHI
+}
+struct MenuDepth * create_struct_menu_depth(struct Menu * menu){
+	//creating...
 }
 void item_link(struct Menu * menu_ptr,struct Menu_init * menu_in_ptr){
 		//link the head and next to each other
@@ -236,52 +242,17 @@ int user_in_handle(struct Menu * menu){
 			//execute...
 			//OR open item for more options...
 			return(0);
+		} else if(input == KEY_RIGHT){
+			//expand menu
+		} else if(input == KEY_LEFT){
+			//hide menu
 		}
 		move(5,10);
 		menu_render(menu);
 	}
 	return(1);
-	/*while (true){
-		init = menu->head;
-		for (int i = 0; menu->cursor_pos > i-1; ++i) {
-			if(init->next!=NULL){
-				init->selected = false;
-				init = init->next;
-			} else {
-				break;
-			}
-		}
-		input = user_in();
-		if (input == KEY_DOWN) {
-			if(init != menu->tail){
-				menu->cursor_pos++;
-			}
-
-			if(init->next->next == NULL){
-				init->next->selected = true;
-			} else {
-				init->next->next->selected=true;
-			}
-		} else if (input == KEY_UP) {
-			if(menu->cursor_pos!=0){
-				menu->cursor_pos--;
-			}
-
-			init->selected = true;
-		} else if (input == KEY_ENTER) {
-			//will realize later...
-			return(0);
-		}
-		menu_render(menu);
-		refresh();
-	}
-	die(1);
-	return(1);
-	like, bad implementation...
-	*/
-
-
 }
+
 //main menu function, options with links? will be here
 void menu_main(){
 //todo
@@ -291,8 +262,6 @@ void menu_main(){
 	user_in_handle(menu_setup());
 
 }
-//NEED: function for displaying active option
-
 //for testing, will be moved to main.c
 int main(void)
 {
