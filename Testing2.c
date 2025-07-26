@@ -211,7 +211,7 @@ struct Menu * menu_setup(void){
 int user_in_handle(struct Menu * menu){
 	keypad(stdscr, TRUE);
 	cbreak();
-    noecho();
+  noecho();
 	//need to handle arrow key input and return key
 	int input;
 	struct Menu_init *init = menu->head;
@@ -254,9 +254,9 @@ int user_in_handle(struct Menu * menu){
 		input = user_in();
 		if (input == KEY_DOWN) {
 			if(init != menu->tail){
-				menu->cursor_pos++;	
+				menu->cursor_pos++;
 			}
-			
+
 			if(init->next->next == NULL){
 				init->next->selected = true;
 			} else {

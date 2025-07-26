@@ -7,7 +7,6 @@
 //STRUCTS!
 struct Menu_init {
 	 char * label;
-	 bool selected;
 	 struct Menu_init * next;
 };
 
@@ -84,9 +83,9 @@ void epic_printw(const char *input, int e_delay){
 int menu_init (void){
 	clear();
 	cbreak();
-    noecho();
-    //trying to implement arrow key support and everything else...
-    keypad(stdscr, TRUE);
+  noecho();
+  //trying to implement arrow key support and everything else...
+  keypad(stdscr, TRUE);
 	int x,y;
 	getmaxyx(stdscr,y,x);
 	if ((y%2 && x%2) == 0)
@@ -120,7 +119,6 @@ struct Menu_init * create_struct_menu_init (char * label){
 	if (!ptr->label) {
         die(2);
     }
-	ptr->selected = false;
 	ptr->next = NULL;
 	return (ptr);
 	//REMEMBER TO FREE THIS SHI
@@ -165,9 +163,10 @@ void menu_render(struct Menu * menu){
 	}
 	//temp var for checking if it is in scope
 	struct Menu_init *temp = menu->head;
+	int selected = 0;
 	while(temp != NULL){
 		//highlighting and printing the selected item
-		if(temp->selected == true){
+		if(selected == menu->cursor_pos){
 			attron(A_STANDOUT);
 		}
 		//printing the item
@@ -177,14 +176,15 @@ void menu_render(struct Menu * menu){
 			printw("%s\n",temp->label);
 		}
 		//elevate onto the next item
-		if(temp->selected == true){
+		if(selected == menu->cursor_pos){
 			attroff(A_STANDOUT);
 		}
 		temp = temp->next;
+		selected++;
 	}
 	refresh();
 }
-void menu_setup(void){
+struct Menu * menu_setup(void){
 	//setup the menu here, so I can call the function in the main just with structs defined.
 	int x,y;
 	getmaxyx(stdscr,y,x);
@@ -200,6 +200,42 @@ void menu_setup(void){
 	item_link(main_menu,create_struct_menu_init("Template2\n"));
 	item_link(main_menu,create_struct_menu_init("Template3\n"));
 	menu_render(main_menu);
+	return(main_menu);
+}
+//function for handling user input in the menu and elsewhere (selecting, moving with arrow keys etc.)
+int user_in_handle(struct Menu * menu){
+	keypad(stdscr, TRUE);
+	cbreak();
+  noecho();
+	//need to handle arrow key input and return key
+	int input;
+	struct Menu_init *init = menu->head;
+
+	int menu_size = 0;
+	while (init){
+		menu_size++;
+		init=init->next;
+	}
+	while(true){
+		curs_set(0);
+		int input = user_in();
+		if (input == KEY_DOWN){
+			if(menu->cursor_pos != menu_size-1){
+				menu->cursor_pos++;
+			}
+		} else if(input == KEY_UP){
+			if(menu->cursor_pos > 0){
+				menu->cursor_pos--;
+			}
+		} else if(input == KEY_ENTER){
+			//execute...
+			//OR open item for more options...
+			return(0);
+		}
+		move(5,10);
+		menu_render(menu);
+	}
+	return(1);
 }
 //main menu function, options with links? will be here
 void menu_main(){
@@ -208,16 +244,8 @@ void menu_main(){
 	mvprintw(4,8,"Welcome to C.H.A.R.O.N.\n");
 	refresh();
 	menu_setup();
-	user_in();
+	user_in_handle(menu_setup());
 }
-//function for handling user input in the menu and elsewhere (selecting, moving with arrow keys etc.)
-/*void user_in_handle(int input){
-	//handle
-	//need to handle arrow key input
-}*/
-
-//NEED: function for displaying active option
-
 //for testing, will be moved to main.c
 int main(void)
 {
